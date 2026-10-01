@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>RAVIN | Unified Operations Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root[data-theme="light"] {
+  --bg: #f4f6f9; --card: #ffffff; --gold: #c98a2b; --gold2: #b87b20; --line: #e2e8f0; 
+  --text: #1e293b; --muted: #64748b; --danger: #dc2626; --ok: #16a34a; --store-bg: #f8fafc;
+  --header-grad: linear-gradient(135deg, #111 0%, #222 100%);
+  --input-bg: #fff; --input-border: #cfc8bd; --col-bg: #ffffff;
+}
+:root[data-theme="dark"] {
+  --bg: #080808; --card: #111; --gold: #c98a2b; --gold2: #f0b24d; --line: #2b2b2b; 
+  --text: #f7f4ee; --muted: #aaa; --danger: #ff5b5b; --ok: #4fd38b; --store-bg: #1a1a1a;
+  --header-grad: linear-gradient(135deg,#151515,#080808 65%,#181008);
+  --input-bg: #161616; --input-border: #333; --col-bg: #141414;
+}
+*{box-sizing:border-box} 
+body{margin:0;font-family:'Cairo',Tahoma,Arial,sans-serif;background:var(--bg);color:var(--text);padding-bottom:50px;transition:background-color 0.3s, color 0.3s;}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.06;background-image:linear-gradient(135deg,transparent 46%,var(--gold) 47%,transparent 48%),linear-gradient(45deg,transparent 46%,var(--gold) 47%,transparent 48%);background-size:180px 180px}
+.wrap{max-width:1450px;margin:auto;padding:24px;position:relative;}
+
+/* شاشة تسجيل الدخول */
+#loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); z-index: 99999; display: flex; align-items: center; justify-content: center; padding: 20px; }
+.login-box { width: min(420px, 94vw); background: var(--card); border: 1px solid var(--gold); border-radius: 24px; padding: 35px 30px; box-shadow: 0 25px 80px rgba(0,0,0,0.5); text-align: center; color: var(--text); }
+.login-box h2 { color: var(--gold2); margin-bottom: 8px; font-size: 26px; }
+.login-box p { color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+.login-field { margin-bottom: 16px; text-align: right; }
+.login-field label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: var(--text); }
+.login-field input { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: 14px; outline: none; }
+.login-field input:focus { border-color: var(--gold); }
+
+/* الهيدر */
+.hero{min-height:260px;border:1px solid var(--gold);border-radius:28px;background:var(--header-grad);padding:35px 45px;display:flex;align-items:center;justify-content:space-between;gap:30px;box-shadow:0 20px 60px rgba(0,0,0,0.1); color: #fff;}
+.brand{font-size:62px;font-weight:900;letter-spacing:8px;}.brand b{color:#ff6a00}.sub{color:var(--gold2);letter-spacing:6px;font-size:18px}.heroTitle{font-size:38px;font-weight:900;margin-top:25px}.heroText{color:#ddd;font-size:18px;margin-top:8px}
+.made{border:1px solid var(--gold);border-radius:18px;padding:15px 22px;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;text-align:center;min-width:300px;background:rgba(0,0,0,.2);box-shadow:inset 0 0 20px rgba(201,138,43,.05)}
+.madeTop{font-size:15px;letter-spacing:1px}.madeTop b{color:var(--gold2);font-size:21px;letter-spacing:1.5px}.madeRole{font-size:11px;letter-spacing:2px;color:#ccc;font-weight:800}
+
+.theme-toggle {
+  background: rgba(255, 255, 255, 0.1); border: 1px solid var(--gold); color: #fff;
+  width: 45px; height: 45px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: 0.3s; font-size: 18px; margin-bottom: 10px;
+}
+.theme-toggle:hover { background: var(--gold); color: #000; }
+
+.metrics-tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;margin-top:20px;}
+.metric-tab{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center;box-shadow:0 6px 20px rgba(0,0,0,0.03);border-bottom:4px solid var(--gold); color: var(--text);}
+.metric-tab b{display:block;font-size:28px;color:var(--gold2);margin-top:4px;}
+.metric-tab span{font-size:13px;color:var(--muted);font-weight:bold;}
+
+.card{background:var(--card);color:var(--text);border-radius:22px;overflow:hidden;box-shadow:0 20px 55px rgba(0,0,0,0.05);margin-top:24px; border: 1px solid var(--line);}
+.sectionHead{background:var(--header-grad);color:#fff;padding:17px 24px;border-bottom:1px solid var(--gold);display:flex;align-items:center;justify-content:space-between;position:relative;}
+.headLeft{display:flex;align-items:center;gap:16px}
+.num{font-size:30px;color:var(--gold2);font-weight:900}.headTitle{font-size:22px;font-weight:900}.headEn{display:block;color:var(--gold2);font-size:12px;letter-spacing:2px;margin-top:3px}
+.body{padding:28px}
+
+.dashboard-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.dash-column{background:var(--col-bg);border:1px solid var(--line);border-radius:16px;padding:18px;color:var(--text);display:flex;flex-direction:column;min-height:500px}
+.dash-col-title{font-size:18px;font-weight:900;color:var(--gold2);margin-bottom:15px;border-bottom:2px solid var(--line);padding-bottom:10px;display:flex;align-items:center;justify-content:space-between;letter-spacing:.5px;}
+.dash-col-title small{color:var(--muted);font-size:12px;font-weight:500}
+
+.req-item{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;font-size:13px;transition:.2s;position:relative; color: var(--text);}
+.req-item:hover{border-color:var(--gold)}
+.req-item.selected{background:rgba(201,138,43,0.08);border-color:var(--gold)}
+.req-item.sla-warn{border-color:#f1c40f !important;background:rgba(241,196,15,0.08) !important;}
+.req-item.sla-danger{border-color:#ff5b5b !important;background:rgba(255,91,91,0.08) !important;animation: ravinDangerPulse 1s infinite;}
+@keyframes ravinDangerPulse { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+
+.req-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:bold}
+.req-details{color:var(--muted);font-size:12px;line-height:1.6}
+
+input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--gold); cursor: pointer; border-radius: 4px; }
+.btn{border:0;border-radius:12px;padding:12px 22px;font-weight:900;cursor:pointer;font-size:14px}
+.primary{background:linear-gradient(135deg,#e8a43c,#9b5b13);color:#fff}
+.secondary{background:var(--card);color:var(--text);border:1px solid var(--line);}
+.success-btn{background:#16a34a;color:#fff}
+.danger-btn{background:#dc2626;color:#fff}
+.control-bar{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
+
+.messenger-icon-btn { background: linear-gradient(135deg, #25d366, #128c7e); border: 2px solid #fff; color: #fff; padding: 8px 16px; border-radius: 30px; font-weight: bold; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; box-shadow: 0 4px 15px rgba(37,211,102,0.4); transition: 0.2s; position: relative; }
+.unread-badge { position: absolute; top: -6px; left: -6px; background: #ff3b30; color: #fff; font-size: 11px; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #111; font-weight: bold; display: none; }
+.unread-badge.show { display: flex; }
+
+.messenger-popup { position: absolute; top: calc(100% + 8px); left: 0; width: 380px; height: 460px; background: #0b141a; border: 1px solid #222d34; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); z-index: 2000; display: none; flex-direction: column; overflow: hidden; }
+.messenger-popup.open { display: flex; animation: ravinMsgFade .18s ease; }
+.messenger-header { background: #202c33; padding: 12px 16px; color: #e9edef; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2f3b43; }
+.messenger-messages { flex: 1; overflow: auto; padding: 12px; font-size: 13px; display: flex; flex-direction: column; gap: 10px; background-image: radial-gradient(#111b21 1px, transparent 1px); background-size: 20px 20px; }
+.chat-msg { padding: 10px 14px; border-radius: 12px; max-width: 85%; line-height: 1.5; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+.chat-msg.me { background: #005c4b; color: #e9edef; margin-right: auto; border-top-right-radius: 2px; text-align: right; }
+.chat-msg.other { background: #202c33; color: #e9edef; margin-left: auto; border-top-left-radius: 2px; text-align: right; }
+.messenger-input-area { display: flex; gap: 6px; padding: 10px; background: #202c33; border-top: 1px solid #2f3b43; align-items: center; }
+.messenger-input-area input { flex: 1; padding: 10px 14px; border-radius: 8px; border: 0; background: #2a3942; color: #fff; font-size: 13px; outline: none; }
+
+@keyframes ravinMsgFade{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+
+.table-container{overflow:auto;margin-top:15px}
+table{width:100%;border-collapse:collapse;font-size:12px;color:var(--text);}
+th,td{padding:8px 10px;border:1px solid var(--line);text-align:right;white-space:nowrap;}
+th{background:var(--header-grad);color:#fff;text-align:right;}
+
+.search-box { width: 100%; padding: 10px 14px; border-radius: 12px; border: 1px solid var(--input-border); background: var(--input-bg); color: var(--text); font-size: 13px; margin-bottom: 15px; outline: none; }
+.search-box:focus { border-color: var(--gold); }
+</style>
+</head>
+<body>
+
+<div id="loginOverlay">
+  <div class="login-box">
+    <h2>🔐 تسجيل الدخول للنظام</h2>
+    <p>أدخل بريدك الإلكتروني وكلمة المرور للمتابعة</p>
+    <div class="login-field">
+      <label>البريد الإلكتروني:</label>
+      <input type="email" id="loginEmail" placeholder="example@iravin.com">
+    </div>
+    <div class="login-field">
+      <label>كلمة المرور:</label>
+      <input type="password" id="loginPass" placeholder="••••••">
+    </div>
+    <button type="button" class="btn primary" style="width:100%; margin-top:10px;" onclick="handleLogin()">دخول ✓</button>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <div>
+      <div class="brand">RAV<span>i</span>N</div>
+      <div class="sub">UNIFIED OPERATIONS DASHBOARD</div>
+      <div class="heroTitle">لوحة التحكم الموحدة وسير العمل</div>
+      <div class="heroText">متابعة طلبات الفروع، اعتماد الموارد البشرية، وتنفيذ نظم المعلومات (IT)</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center;">
+      <button class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()" title="تغيير المظهر">
+        <i class="fa-solid fa-moon" id="themeIcon"></i>
+      </button>
+      <div class="made"><span class="madeTop">★ BY : <b>HR EBRAHIM HASSAN</b> ★</span><span class="madeRole">SYSTEM ADMINISTRATOR &amp; HR GENERALIST</span></div>
+    </div>
+  </header>
+
+  <div class="metrics-tabs">
+    <div class="metric-tab">
+      <span>طلبات الفروع النشطة</span>
+      <b id="metricTotal">0</b>
+    </div>
+    <div class="metric-tab">
+      <span>بانتظار مراجعة HR</span>
+      <b id="metricHR" style="color:var(--gold2);">0</b>
+    </div>
+    <div class="metric-tab">
+      <span>قيد التنفيذ لدى IT</span>
+      <b id="metricIT" style="color:var(--ok);">0</b>
+    </div>
+  </div>
+
+  <div class="card" style="padding:15px 25px; display:flex; align-items:center; justify-content:space-between;">
+    <div id="userInfoDisplay">
+      <b>المستخدم الحالي:</b> <span id="activeUserEmail" style="color:var(--gold2);">غير محدد</span>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button type="button" class="btn primary" style="padding:6px 14px; font-size:12px; background:var(--gold2); color:#111;" onclick="refreshDashboard(true)">🔄 تحديث سريع (Sync Live)</button>
+      <button type="button" class="btn secondary" style="padding:6px 14px; font-size:12px;" onclick="handleLogout()">تسجيل خروج</button>
+    </div>
+  </div>
+
+  <div style="margin-top:20px;">
+    <input type="text" id="quickSearchInput" class="search-box" placeholder="🔍 بحث سريع عن اسم الموظف، الفرع، أو رقم الطلب..." oninput="renderDashboard()">
+  </div>
+
+  <div class="card">
+    <div class="sectionHead">
+      <div class="headLeft">
+        <span class="num">⚡</span>
+        <div>
+          <div class="headTitle">🚀 Workflow & Operations Management</div>
+          <span class="headEn">Branch Requests / HR Routing / IT Execution</span>
+        </div>
+      </div>
+      
+      <div style="position: relative; display: flex; justify-content: flex-end;">
+        <button type="button" class="messenger-icon-btn" onclick="toggleMessengerChat()">
+          <span>💬 محادثات الفريق (Live)</span>
+          <span class="unread-badge" id="unreadBadge">0</span>
+        </button>
+
+        <div class="messenger-popup" id="messengerPopup">
+          <div class="messenger-header">
+            <span>💬 شات الفريق (Live)</span>
+            <span style="font-size:11px; color:var(--gold2);" id="chatUserLabel">-</span>
+          </div>
+          <div class="messenger-messages" id="chatMessages"></div>
+          <div class="messenger-input-area">
+            <input type="text" id="chatInput" placeholder="اكتب رسالة..." onkeypress="if(event.key==='Enter')sendChatMessage()">
+            <button type="button" class="btn primary" style="padding:8px 14px; font-size:12px;" onclick="sendChatMessage()">إرسال</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="body">
+      <div class="dashboard-grid">
+        
+        <div class="dash-column">
+          <div class="dash-col-title">
+            <span>📍 طلبات الفروع الواردة</span>
+            <small id="countBranch">0</small>
+          </div>
+          <div id="branchControls" class="control-bar" style="margin-bottom:8px; display:flex; gap:6px;">
+            <button type="button" class="btn secondary" style="font-size:11px; padding:8px 12px;" onclick="toggleSelectAll('branch')">☑️ تحديد الكل</button>
+            <button type="button" id="btnRouteBranch" class="btn success-btn" style="flex:1; font-size:12px; padding:8px;" onclick="batchRouteFromBranchToHR()">🚀 ترحيل إلى HR</button>
+          </div>
+          <div id="colBranchList" style="flex:1; overflow:auto;"></div>
+        </div>
+
+        <div class="dash-column">
+          <div class="dash-col-title">
+            <span>👤 مراجعة واعتماد HR</span>
+            <small id="countHR">0</small>
+          </div>
+          <div id="hrControls" class="control-bar" style="margin-bottom:8px; display:flex; gap:6px;">
+            <button type="button" class="btn secondary" style="font-size:11px; padding:8px 12px;" onclick="toggleSelectAll('hr')">☑️ تحديد الكل</button>
+            <button type="button" id="btnRouteIT" class="btn success-btn" style="flex:1; font-size:12px; padding:8px;" onclick="batchRouteToIT()">🚀 ترحيل إلى IT</button>
+          </div>
+          <div id="colHRList" style="flex:1; overflow:auto;"></div>
+        </div>
+
+        <div class="dash-column">
+          <div class="dash-col-title">
+            <span>💻 نظم ومعلومات IT</span>
+            <small id="countIT">0</small>
+          </div>
+          <div id="colITList" style="flex:1; overflow:auto;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sectionHead" style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="num">📋</span>
+        <div>
+          <div class="headTitle">سجل كافة الطلبات والتقارير الشامل مع تتبع المواعيد (SLA)</div>
+          <span class="headEn">Master Archive & Timestamps Tracking</span>
+        </div>
+      </div>
+      <div>
+        <button type="button" class="btn primary" style="padding:8px 16px; font-size:13px;" onclick="exportTableToExcel()">📊 تصدير إلى Excel</button>
+      </div>
+    </div>
+    <div class="body">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>رقم الطلب</th>
+              <th>تسجيل الفرع</th>
+              <th>ترحيل HR</th>
+              <th>تنفيذ IT</th>
+              <th>اسم الموظف (عربي)</th>
+              <th>كود البصمة / الاسم [ID-NAME]</th>
+              <th>الفرع</th>
+              <th>الوظيفة</th>
+              <th>الحالة</th>
+              <th>حالة IT</th>
+              <th id="thDeleteCol" style="display:none;">حذف (المالك فقط)</th>
+            </tr>
+          </thead>
+          <tbody id="masterTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_URL = "https://script.google.com/macros/s/AKfycbzbLcA4x4Bzrb1MUrsEfogrWN0_v7WKi30vJ_sEW9twZXHoFrOnZHGADh8OTb_inbAR/exec";
+
+const USERS_DB = {
+  "ezzeldien@iravin.com": { pass: "1234", role: "it" },
+  "noura.emad@iravin.com": { pass: "12345", role: "hr" },
+  "hemozh15@gmail.com": { pass: "012010", role: "owner" }
+};
+
+let currentUser = null;
+let currentUserRole = null;
+let isChatOpen = false;
+let requestsData = [];
+let chatLogs = [];
+let lastChatCount = 0;
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute('data-theme') || 'light';
+  const next = current === 'light' ? 'dark' : 'light';
+  html.setAttribute('data-theme', next);
+  document.getElementById('themeIcon').className = next === 'light' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+}
+
+function loadCachedData(){
+  const cachedReqs = localStorage.getItem("ravin_cached_requests");
+  const cachedChat = localStorage.getItem("ravin_cached_chat");
+  if(cachedReqs){
+    try { requestsData = JSON.parse(cachedReqs); renderDashboard(); } catch(e){}
+  }
+  if(cachedChat){
+    try { chatLogs = JSON.parse(cachedChat); renderChatMessages(); lastChatCount = chatLogs.length; } catch(e){}
+  }
+}
+
+function formatCairoTime(dateStr) {
+  if(!dateStr || dateStr === "-") return "-";
+  try {
+    let cleanStr = dateStr.toString().trim();
+    if (cleanStr.includes("/") && cleanStr.includes("-") && cleanStr.length <= 20) return cleanStr;
+    
+    let d = new Date(cleanStr.includes("GMT") || cleanStr.includes("UTC") ? cleanStr : cleanStr.replace(' ', 'T'));
+    if (isNaN(d.getTime())) { d = new Date(cleanStr); }
+    if (isNaN(d.getTime())) return cleanStr;
+
+    let day = String(d.getDate()).padStart(2, '0');
+    let month = String(d.getMonth() + 1).padStart(2, '0');
+    let year = d.getFullYear();
+    let hours = String(d.getHours()).padStart(2, '0');
+    let minutes = String(d.getMinutes()).padStart(2, '0');
+
+    return `${day}/${month}/${year} - ${hours}:${minutes}`;
+  } catch(e) {
+    return dateStr;
+  }
+}
+
+function getCurrentDeviceTimestamp() {
+  let now = new Date();
+  let day = String(now.getDate()).padStart(2, '0');
+  let month = String(now.getMonth() + 1).padStart(2, '0');
+  let year = now.getFullYear();
+  let hours = String(now.getHours()).padStart(2, '0');
+  let minutes = String(now.getMinutes()).padStart(2, '0');
+  return `${day}/${month}/${year} - ${hours}:${minutes}`;
+}
+
+function getSlaClass(dateStr) {
+  if(!dateStr) return '';
+  try {
+    let cleanStr = dateStr.toString().trim();
+    let d;
+    if (cleanStr.includes("/")) {
+      let parts = cleanStr.split(/[\/\-\s:]+/);
+      if(parts.length >= 5) {
+        d = new Date(parts[2], parts[1]-1, parts[0], parts[3], parts[4]);
+      }
+    }
+    if(!d || isNaN(d.getTime())) {
+      d = new Date(cleanStr.includes("GMT") ? cleanStr : cleanStr.replace(' ', 'T'));
+    }
+    if(isNaN(d.getTime())) return '';
+
+    let diffHours = (new Date() - d) / (1000 * 60 * 60);
+    if(diffHours >= 24) return 'sla-danger';
+    if(diffHours >= 12) return 'sla-warn';
+  } catch(e){}
+  return '';
+}
+
+function playNotificationSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+
+function checkLoginSession(){
+  const savedEmail = localStorage.getItem("ravin_user_email");
+  const savedRole = localStorage.getItem("ravin_user_role");
+  if(savedEmail && USERS_DB[savedEmail]){
+    currentUser = savedEmail;
+    currentUserRole = savedRole;
+    document.getElementById("loginOverlay").style.display = "none";
+    document.getElementById("activeUserEmail").textContent = currentUser + " (" + currentUserRole.toUpperCase() + ")";
+    document.getElementById("chatUserLabel").textContent = currentUser;
+    
+    applyRolePermissions();
+    loadCachedData();
+    refreshDashboard();
+  }
+}
+
+function applyRolePermissions(){
+  if(currentUserRole === 'owner'){
+    document.getElementById("thDeleteCol").style.display = "";
+  }
+}
+
+function handleLogin(){
+  const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+  const pass = document.getElementById("loginPass").value.trim();
+
+  if(!USERS_DB[email] || USERS_DB[email].pass !== pass){
+    alert("البريد الإلكتروني أو كلمة المرور غير صحيحة!");
+    return;
+  }
+
+  currentUser = email;
+  currentUserRole = USERS_DB[email].role;
+
+  localStorage.setItem("ravin_user_email", currentUser);
+  localStorage.setItem("ravin_user_role", currentUserRole);
+
+  document.getElementById("loginOverlay").style.display = "none";
+  document.getElementById("activeUserEmail").textContent = currentUser + " (" + currentUserRole.toUpperCase() + ")";
+  document.getElementById("chatUserLabel").textContent = currentUser;
+  
+  applyRolePermissions();
+  loadCachedData();
+  refreshDashboard();
+}
+
+function handleLogout(){
+  localStorage.removeItem("ravin_user_email");
+  localStorage.removeItem("ravin_user_role");
+  location.reload();
+}
+
+// دالة الاتصال المباشر Live مع منع الـ Cache تماماً لجلب أحدث البيانات فوراً
+async function apiGet(params={}) {
+  const qs = new URLSearchParams(params).toString();
+  const separator = qs ? "&" : "?";
+  const url = API_URL + (qs ? "?" + qs : "") + separator + "_t=" + new Date().getTime();
+  
+  const r = await fetch(url, {redirect:"follow", cache: "no-store"});
+  const text = await r.text();
+  let d;
+  try { d = JSON.parse(text); } catch(e) { throw new Error("خطأ في قراءة الاستجابة."); }
+  if(!d.ok) throw new Error(d.error || "خطأ غير معروف.");
+  return d;
+}
+
+async function apiPost(payload) {
+  const r = await fetch(API_URL,{
+    method:"POST",
+    mode:"cors",
+    headers:{"Content-Type":"text/plain;charset=utf-8"},
+    body:JSON.stringify(payload),
+    redirect:"follow"
+  });
+  const text = await r.text();
+  let d;
+  try { d = JSON.parse(text); } catch(e) { throw new Error("خطأ في قراءة الاستجابة."); }
+  if(!d.ok) throw new Error(d.error || "خطأ غير معروف.");
+  return d;
+}
+
+async function refreshDashboard(showNotification=false){
+  try{
+    const d = await apiGet();
+    requestsData = (d.requests || []).map(x => ({...x, branchSelected:false, hrSelected:false}));
+    const newChatLogs = d.messages || [];
+    
+    if(newChatLogs.length > chatLogs.length) {
+      if(!isChatOpen) {
+        playNotificationSound();
+        document.getElementById("unreadBadge").textContent = newChatLogs.length - chatLogs.length;
+        document.getElementById("unreadBadge").classList.add("show");
+      }
+    }
+    chatLogs = newChatLogs;
+
+    localStorage.setItem("ravin_cached_requests", JSON.stringify(requestsData));
+    localStorage.setItem("ravin_cached_chat", JSON.stringify(chatLogs));
+
+    renderDashboard();
+    if(showNotification) alert("تم مزامنة البيانات Live بنجاح من الشيت!");
+  }catch(err){
+    if(showNotification) alert("خطأ في المزامنة: " + err.message);
+  }
+}
+
+function toggleMessengerChat() {
+  const popup = document.getElementById('messengerPopup');
+  isChatOpen = !isChatOpen;
+  if(isChatOpen) {
+    popup.classList.add('open');
+    document.getElementById("unreadBadge").classList.remove("show");
+    lastChatCount = chatLogs.length;
+  } else {
+    popup.classList.remove('open');
+  }
+}
+
+function toggleSelectAll(targetCol){
+  if(targetCol === 'branch'){
+    const allChecked = requestsData.filter(x => x.stage === "BRANCH").every(x => x.branchSelected);
+    requestsData.forEach(x => { if(x.stage === "BRANCH") x.branchSelected = !allChecked; });
+  } else if(targetCol === 'hr'){
+    const allChecked = requestsData.filter(x => x.stage === "HR").every(x => x.hrSelected);
+    requestsData.forEach(x => { if(x.stage === "HR") x.hrSelected = !allChecked; });
+  }
+  renderDashboard();
+}
+
+function renderDashboard(){
+  const colBranch = document.getElementById("colBranchList");
+  const colHR = document.getElementById("colHRList");
+  const colIT = document.getElementById("colITList");
+  const tbody = document.getElementById("masterTableBody");
+  const searchTerm = (document.getElementById("quickSearchInput").value || "").toLowerCase();
+
+  colBranch.innerHTML = "";
+  colHR.innerHTML = "";
+  colIT.innerHTML = "";
+  tbody.innerHTML = "";
+
+  let countB = 0, countH = 0, countI = 0;
+
+  const filteredRequests = requestsData.filter(req => {
+    if(!searchTerm) return true;
+    return (req.arName && req.arName.toLowerCase().includes(searchTerm)) ||
+           (req.branch && req.branch.toLowerCase().includes(searchTerm)) ||
+           (req.id && req.id.toLowerCase().includes(searchTerm)) ||
+           (req.job && req.job.toLowerCase().includes(searchTerm));
+  });
+
+  filteredRequests.forEach((req, idx) => {
+    if(req.stage === "BRANCH") countB++;
+    if(req.stage === "HR") countH++;
+    if(req.stage === "IT") countI++;
+
+    let slaCls = getSlaClass(req.timestamp);
+
+    if(req.stage === "BRANCH") {
+      let canEditBranch = (currentUserRole === 'owner' || currentUserRole === 'hr');
+      colBranch.innerHTML += `
+        <div class="req-item ${req.branchSelected ? 'selected':''} ${slaCls}">
+          <div class="req-header">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" ${req.branchSelected ? 'checked':''} ${!canEditBranch?'disabled':''} onclick="toggleSelectBranchSafe(${requestsData.indexOf(req)})"> 📍 #${req.id}
+            </label>
+            <span style="color:var(--gold2);">${req.branch}</span>
+          </div>
+          <div class="req-details"><b>${req.arName}</b><br>الوظيفة: ${req.job}<br><small>${formatCairoTime(req.timestamp)}</small></div>
+        </div>
+      `;
+    }
+
+    if(req.stage === "HR") {
+      let canEditHR = (currentUserRole === 'owner' || currentUserRole === 'hr');
+      colHR.innerHTML += `
+        <div class="req-item ${req.hrSelected ? 'selected':''} ${slaCls}">
+          <div class="req-header">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+              <input type="checkbox" ${req.hrSelected ? 'checked':''} ${!canEditHR?'disabled':''} onclick="toggleSelectHRSafe(${requestsData.indexOf(req)})"> 👤 #${req.id}
+            </label>
+            <span style="color:var(--gold2);">${req.branch}</span>
+          </div>
+          <div class="req-details" style="margin-top:6px;">
+            <b>${req.arName}</b>
+            <input type="text" value="${req.enName}" ${!canEditHR?'disabled':''} onchange="updateEnglishName(${requestsData.indexOf(req)}, this.value)" style="width:100%; padding:5px; border-radius:6px; background:var(--input-bg); color:var(--text); border:1px solid var(--input-border); margin-top:4px;">
+          </div>
+        </div>
+      `;
+    }
+
+    if(req.stage === "IT") {
+      let canEditIT = (currentUserRole === 'owner' || currentUserRole === 'it');
+      colIT.innerHTML += `
+        <div class="req-item ${slaCls}" style="border-color:var(--gold);">
+          <div class="req-header"><span>💻 #${req.id}</span> <span style="color:var(--ok);">${req.branch}</span></div>
+          <div class="req-details" style="margin-top:6px;">
+            <div>الموظف: <b>${req.arName}</b></div>
+            
+            <label style="font-size:11px; color:var(--gold2); display:block; margin-top:6px;"><b>[ID-NAME]</b> كود واسم البصمة:</label>
+            <input type="text" id="it_id_name_${req.id}" value="${req.itIdName || ''}" ${!canEditIT?'disabled':''} placeholder="3849 / الاسم..." style="width:100%; padding:6px; border-radius:6px; background:var(--input-bg); color:var(--gold2); border:1px solid var(--gold); margin-top:2px; font-weight:bold;">
+            
+            <label style="font-size:11px; color:var(--muted); display:block; margin-top:6px;">حالة التنفيذ:</label>
+            <select id="it_status_${req.id}" ${!canEditIT?'disabled':''} style="width:100%; padding:6px; border-radius:6px; background:var(--input-bg); color:var(--text); border:1px solid var(--input-border); margin-top:2px;">
+              <option value="PENDING" ${req.itStatus==='PENDING'?'selected':''}>بانتظار الإجراء</option>
+              <option value="DONE FS" ${req.itStatus==='DONE FS'?'selected':''}>DONE FS ✓ [ترحيل نهائي]</option>
+              <option value="LEAVE WORK" ${req.itStatus==='LEAVE WORK'?'selected':''}>LEAVE WORK (إجازة) 🛑</option>
+              <option value="RESIGN" ${req.itStatus==='RESIGN'?'selected':''}>LEAVE WORK (ترك العمل) ❌</option>
+              <option value="WEEK END" ${req.itStatus==='WEEK END'?'selected':''}>WEEK END (إجازة أسبوعية) 🏖️</option>
+              <option value="OTHER" ${req.itStatus==='OTHER'?'selected':''}>OTHER (أخرى) ⚙️</option>
+            </select>
+
+            ${canEditIT ? `<button type="button" class="btn primary" style="width:100%; margin-top:10px; padding:8px; font-size:12px;" onclick="submitITAction('${req.id}')">حفظ وتنفيذ ✓</button>` : `<div style="color:var(--muted); font-size:11px; text-align:center; margin-top:8px;">(عرض فقط - الصلاحية لـ IT)</div>`}
+          </div>
+        </div>
+      `;
+    }
+
+    let deleteTD = "";
+    if(currentUserRole === 'owner'){
+      deleteTD = `<td><button type="button" class="btn danger-btn" style="padding:4px 8px; font-size:11px;" onclick="deleteRequestRow('${req.id}')">حذف 🗑️</button></td>`;
+    }
+
+    tbody.innerHTML += `
+      <tr>
+        <td><b>${req.id}</b></td>
+        <td>${formatCairoTime(req.timestamp)}</td>
+        <td>${formatCairoTime(req.hrTime)}</td>
+        <td>${formatCairoTime(req.itDoneTime)}</td>
+        <td>${req.arName}</td>
+        <td><b style="color:var(--gold);">${req.itIdName || req.enName}</b></td>
+        <td>${req.branch}</td>
+        <td>${req.job}</td>
+        <td>${req.stage}</td>
+        <td>${req.itStatus}</td>
+        ${deleteTD}
+      </tr>
+    `;
+  });
+
+  document.getElementById("metricTotal").textContent = countB;
+  document.getElementById("metricHR").textContent = countH;
+  document.getElementById("metricIT").textContent = countI;
+  document.getElementById("countBranch").textContent = countB;
+  document.getElementById("countHR").textContent = countH;
+  document.getElementById("countIT").textContent = countI;
+
+  renderChatMessages();
+}
+
+function toggleSelectBranchSafe(idx){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'hr') return;
+  requestsData[idx].branchSelected = !requestsData[idx].branchSelected;
+  renderDashboard();
+}
+
+function toggleSelectHRSafe(idx){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'hr') return;
+  requestsData[idx].hrSelected = !requestsData[idx].hrSelected;
+  renderDashboard();
+}
+
+async function batchRouteFromBranchToHR(){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'hr'){ alert("عذراً، هذه الصلاحية مخصصة لـ HR فقط."); return; }
+  const ids = requestsData.filter(x => x.branchSelected && x.stage === "BRANCH").map(x => x.id);
+  if(!ids.length){ alert("اختر طلب واحد على الأقل."); return; }
+  
+  requestsData.forEach(x => { if(ids.includes(x.id)) x.stage = "HR"; });
+  renderDashboard();
+
+  try{
+    await apiPost({action:"routeBranchToHR", role:currentUserRole, ids});
+  }catch(err){ alert("خطأ: " + err.message); refreshDashboard(); }
+}
+
+async function updateEnglishName(idx, val){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'hr') return;
+  const req = requestsData[idx];
+  req.enName = val;
+  try{
+    await apiPost({action:"updateHR", role:currentUserRole, id:req.id, enName:val});
+  }catch(err){ alert("خطأ: " + err.message); }
+}
+
+async function batchRouteToIT(){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'hr'){ alert("عذراً، هذه الصلاحية مخصصة لـ HR فقط."); return; }
+  const ids = requestsData.filter(x => x.hrSelected && x.stage === "HR").map(x => x.id);
+  if(!ids.length){ alert("اختر طلب واحد على الأقل لترحيله لـ IT."); return; }
+  
+  let nowFormatted = getCurrentDeviceTimestamp();
+  requestsData.forEach(x => { if(ids.includes(x.id)){ x.stage = "IT"; x.hrTime = nowFormatted; } });
+  renderDashboard();
+
+  try{
+    await apiPost({action:"routeHRToIT", role:currentUserRole, ids});
+  }catch(err){ alert("خطأ: " + err.message); refreshDashboard(); }
+}
+
+async function submitITAction(id){
+  if(currentUserRole !== 'owner' && currentUserRole !== 'it'){ alert("عذراً، هذه الصلاحية مخصصة لـ IT فقط."); return; }
+  const idNameElement = document.getElementById("it_id_name_" + id);
+  const statusElement = document.getElementById("it_status_" + id);
+  if(!idNameElement || !statusElement) return;
+
+  const idNameVal = idNameElement.value.trim();
+  const statusVal = statusElement.value;
+
+  if(statusVal === "DONE FS" && !idNameVal){
+    alert("تنبيه: يجب إدخال كود واسم البصمة (ID-NAME) بالصيغة المطلوبة قبل إتمام الترحيل.");
+    return;
+  }
+
+  let nowFormatted = getCurrentDeviceTimestamp();
+  const req = requestsData.find(x => x.id === id);
+  if(req){
+    req.itStatus = statusVal;
+    req.itIdName = idNameVal;
+    if(statusVal === "DONE FS"){ req.stage = "ARCHIVE"; req.itDoneTime = nowFormatted; }
+  }
+  renderDashboard();
+
+  try{
+    await apiPost({
+      action:"updateIT",
+      role:currentUserRole,
+      id: id,
+      status: statusVal,
+      itIdName: idNameVal,
+      itNote: ''
+    });
+    alert("تم تنفيذ الحفظ وترحيل البيانات بنجاح وبسرعة الصاروخ!");
+  }catch(err){ alert("خطأ: " + err.message); refreshDashboard(); }
+}
+
+function exportTableToExcel() {
+  let csv = "\uFEFFرقم الطلب,تسجيل الفرع,ترحيل HR,تنفيذ IT,اسم الموظف (عربي),كود البصمة / الاسم [ID-NAME],الفرع,الوظيفة,الحالة,حالة IT\n";
+  requestsData.forEach(r => {
+    let finalName = r.itIdName || r.enName;
+    csv += `"${r.id}","${formatCairoTime(r.timestamp)}","${formatCairoTime(r.hrTime)}","${formatCairoTime(r.itDoneTime)}","${r.arName}","${finalName}","${r.branch}","${r.job}","${r.stage}","${r.itStatus}"\n`;
+  });
+  const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Ravin_Master_Report_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+async function deleteRequestRow(id){
+  if(currentUserRole !== 'owner') {
+    alert("عذراً، هذه الصلاحية مخصصة لمالك النظام (Owner) فقط.");
+    return;
+  }
+  if(confirm("هل أنت متأكد من حذف هذا السجل نهائياً؟")) {
+    requestsData = requestsData.filter(x => x.id !== id);
+    renderDashboard();
+    try {
+      await apiPost({action: "deleteRequest", role: "owner", id: id});
+      alert("تم الحذف بنجاح!");
+    } catch(err) { alert("خطأ في الحذف: " + err.message); refreshDashboard(); }
+  }
+}
+
+async function sendChatMessage(){
+  const input = document.getElementById("chatInput");
+  const txt = input.value.trim();
+  if(!txt) return;
+  
+  let now = new Date();
+  let timeNow = String(now.getHours()).padStart(2,'0') + ":" + String(now.getMinutes()).padStart(2,'0');
+  
+  chatLogs.push({sender: currentUser, text: txt, time: timeNow});
+  renderChatMessages();
+  input.value = "";
+
+  try{
+    await apiPost({action:"sendChat", email:currentUser, text:txt});
+  }catch(err){ console.error(err); }
+}
+
+function renderChatMessages(){
+  const box = document.getElementById("chatMessages");
+  box.innerHTML = "";
+  chatLogs.forEach(msg => {
+    const isMe = (msg.sender === currentUser);
+    box.innerHTML += `
+      <div class="chat-msg ${isMe ? 'me':'other'}">
+        <div style="font-size:10px; color:${isMe ? '#86efac':'var(--gold2)'}; margin-bottom:2px;">${msg.sender} [${msg.time}]</div>
+        <div>${msg.text}</div>
+      </div>
+    `;
+  });
+  box.scrollTop = box.scrollHeight;
+}
+
+window.onload = function(){
+  checkLoginSession();
+  // تحديث تلقائي Live كل 5 ثواني يسحب أحدث بيانات فريش من جوجل شيت فوراً
+  setInterval(refreshDashboard, 5000);
+};
+</script>
+</body>
+</html>
